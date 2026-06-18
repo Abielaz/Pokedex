@@ -1,29 +1,48 @@
 import requests
 import json
-from rich import print
+from textual.app import App, ComposeResult
+from textual.screen import Screen
+from textual.widgets import Button, Label, Input, Static
 
-while True:
-  decision = input ("1.Shall You Choose A Pokemon?! \n2. Quit?\n")
-  if decision == "1":
-    pokemon = input ("Which Pokemon Shall You Search?\n").lower() # takes input and makes it lowercase for API as it's case-senstive
-    api = requests.get(f'https://pokeapi.co/api/v2/pokemon/{pokemon}')
-    if api.status_code == 200: #checks with API if there is an active page for input
-      data = json.loads(api.text) #parses json from API
-      print(f"You Chose {data['name'].capitalize()}!")
+class HomePage(Screen):
+    BINDINGS = [("q", "app.pop_screen", "Pop screen")]
+    def compose(self) -> ComposeResult:
+        yield Static("Welcome To My Pokedex TUI!")
+        self.play = Button("Play")
+        yield self.play
+        self.quit = Button("Quit")
+        yield self.quit
 
-      for stat in data["stats"] [0:3]: #lists first 3 stats from json
-        print (stat["stat"] ["name"].capitalize(), stat["base_stat"])
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button == self.play:
+            app.push_screen('pokedex')
+        elif event.button == self.quit:
+            self.exit()
 
-      moreInfo = input("Want To Learn More? Y or N...\n")
-      if moreInfo in ["Y","y"]:
-        for ability in data["abilities"]:
-          print ("Abilities:", ability ["ability"] ["name"])
+class Pokedex(Screen):
+    def compose(self):
+        self.ascii = Static("      @%,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n      .????.@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n      .???????S@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n      :?????????#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n      *?????????????*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n      @???????#?????###@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@,*.??#\n      @?????,##,S???#####@@@@@@@@@@@@@@@@@@@@@@@@@@S##????????????\n      @?????*,,,,,,########@@@@@@@@@@@@@@@@@:###????????????????#@\n      @##????,,,,,,,,,#####@@@@@@@@@@@@@.######?????#?:#????????@@\n      @####?#,,,,,,,,,,,##@@@@@@@@@@@@@@#######*,,,,,*##+?????+@@@\n      @######,,,,,,,,,,,S@@@@@@@@@@@@@@#.,,,,,,,,,,,,,,:?####@@@@@\n      @######,,,,,,,,,,%@@,S.S.,@@@@@@@,,,,,,,,,,,,,,,######@@@@@@\n      @@#####,,,,,,,,.,,,,,,,,,,,,,,,*#,,,,,,,,,,,,,.#####:@@@@@@@\n      @@@@@@@@@@.#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,######@@@@@@@@@\n      @@@@@@@@@,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,+######@@@@@@@@@@\n      @@@@@@@@%,,,,,++:,,,,,,,,,,,,,,,,,,,,,@@:.######:@@@@@@@@@@@\n      @@@@@@@:,,,:##@@@#,,,,,,,,,,,,?@S#,,,,,,@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@?,,,#######,,,,,,,,,,,#.@:##,,,:?@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@.,,S,??%?*,,,,,,,,,,,,####?%+,::%@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@?..*+,,,,,,*,,,,,,,,,,,+#S,::::*@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@@%..*,,,,,,,,,,,,,,,,,,,:.*...%@@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@@@.**::*::::::,,:::::::+.....@@@@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@.@@@@?:**:::*::::::::::*...@@@@@@@@@@@@@@@@@@@@@@@@@\n      @@@@@?,,,,,,,,,:,##S::::**:::S#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@.,,,,,,:S#?##?########:#****#,@@@@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@@@,%:*%,??#,,,,:*S##**:..****:,.*@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@@@@@@+,,,,,,,,,,,,,,,,,,*...*:,.,@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@@@@@@+,,,,,,,,,,,,,,,,,,?@@@@@*#?@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@@@@@@*,,,,,,,,,,,,,,,,,,.@#########?@@@@@@@@@@@@@@@@\n      @@@@@@@@@@@@@.*:,,,,,,,,,,,,,,:.##%,?#####????:@@@@@@@@@@@@@\n      @@@@@@@@@@@@@@?.....*******....S@@@@@@:##?????@@@@@@@@@@@@@@\n      @@@@@@@@@@@@@@S.+..********...#%@@@@@@@@@##,@@@@@@@@@@@@@@@@\n      @@@@@@@@@@@#*,,,,*.#@@@@@@@..*:,,*S@@@@@@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@@@+@,%,,,#@@@@@@@@@@,S,,,%,,:@@@@@@@@@@@@@@@@@@@@@@@")
+        yield self.ascii
+        self.label = Label("")
+        yield self.label
+        self.input = Input(placeholder="Who's That Pokemon?!")
+        yield self.input
 
-    else:
-      print(f"{pokemon} Not Found!")
+    def on_input_submitted(self, event):
+        api = requests.get(f"https://pokeapi.co/api/v2/pokemon/{event.value}")
+        if api.status_code == 200:
+            data = json.loads(api.text)
+            self.label.update(f"You Chose:{data['name']}!")
+        else:
+            self.label.update(f"Uhhh Wrong Pokemon?...")
 
-  elif decision =="2":
-    print("Thank You For Stopping By!")
-    break
-  else:
-    print("Invalid Input!")
+class PokedexApp(App):
+    SCREENS = {"homepage": HomePage, "pokedex": Pokedex}
+    BINDINGS = [("w", "push_screen('homepage')", "HomePage")]
+    def on_mount(self) -> None:
+      self.push_screen('homepage')
+
+
+if __name__ == "__main__":
+    app = PokedexApp()
+    app.run()
