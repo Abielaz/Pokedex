@@ -3,42 +3,71 @@ import json
 from textual.app import App, ComposeResult
 from textual.screen import Screen
 from textual.widgets import Button, Label, Input, Static
+from pokemon.master import catch_em_all, get_pokemon
+
+asciiPokemon = catch_em_all()
 
 class HomePage(Screen):
-    BINDINGS = [("q", "app.pop_screen", "Pop screen")]
     def compose(self) -> ComposeResult:
-        yield Static("Welcome To My Pokedex TUI!")
-        self.play = Button("Play")
-        yield self.play
+        yield Static("                                  ,'\\\n    _.----.        ____         ,'  _\\   ___    ___     ____\n_,-'       `.     |    |  /`.   \\,-'    |   \\  /   |   |    \\  |`.\n\\      __    \\    '-.  | /   `.  ___    |    \\/    |   '-.   \\ |  |\n \\.    \\ \\   |  __  |  |/    ,','_  `.  |          | __  |    \\|  |\n   \\    \\/   /,' _`.|      ,' / / / /   |          ,' _`.|     |  |\n    \\     ,-'/  /   \\    ,'   | \\/ / ,`.|         /  /   \\  |     |\n     \\    \\ |   \\_/  |   `-.  \\    `'  /|  |    ||   \\_/  | |\\    |\n      \\    \\ \\      /       `-.`.___,-' |  |\\  /| \\      /  | |   |\n       \\    \\ `.__,'|  |`-._    `|      |__| \\/ |  `.__,'|  | |   |\n        \\_.-'       |__|    `-._ |              '-.|     '-.| |   |\n                                `'                            '-._|")
+        self.start = Button("Choose Your Pokemon!")
+        yield self.start
         self.quit = Button("Quit")
         yield self.quit
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        if event.button == self.play:
-            app.push_screen('pokedex')
+        if event.button == self.start:
+            self.app.push_screen('search')
         elif event.button == self.quit:
             self.exit()
 
-class Pokedex(Screen):
+class Search(Screen):
     def compose(self):
-        self.ascii = Static("      @%,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n      .????.@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n      .???????S@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n      :?????????#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n      *?????????????*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n      @???????#?????###@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@,*.??#\n      @?????,##,S???#####@@@@@@@@@@@@@@@@@@@@@@@@@@S##????????????\n      @?????*,,,,,,########@@@@@@@@@@@@@@@@@:###????????????????#@\n      @##????,,,,,,,,,#####@@@@@@@@@@@@@.######?????#?:#????????@@\n      @####?#,,,,,,,,,,,##@@@@@@@@@@@@@@#######*,,,,,*##+?????+@@@\n      @######,,,,,,,,,,,S@@@@@@@@@@@@@@#.,,,,,,,,,,,,,,:?####@@@@@\n      @######,,,,,,,,,,%@@,S.S.,@@@@@@@,,,,,,,,,,,,,,,######@@@@@@\n      @@#####,,,,,,,,.,,,,,,,,,,,,,,,*#,,,,,,,,,,,,,.#####:@@@@@@@\n      @@@@@@@@@@.#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,######@@@@@@@@@\n      @@@@@@@@@,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,+######@@@@@@@@@@\n      @@@@@@@@%,,,,,++:,,,,,,,,,,,,,,,,,,,,,@@:.######:@@@@@@@@@@@\n      @@@@@@@:,,,:##@@@#,,,,,,,,,,,,?@S#,,,,,,@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@?,,,#######,,,,,,,,,,,#.@:##,,,:?@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@.,,S,??%?*,,,,,,,,,,,,####?%+,::%@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@?..*+,,,,,,*,,,,,,,,,,,+#S,::::*@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@@%..*,,,,,,,,,,,,,,,,,,,:.*...%@@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@@@.**::*::::::,,:::::::+.....@@@@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@.@@@@?:**:::*::::::::::*...@@@@@@@@@@@@@@@@@@@@@@@@@\n      @@@@@?,,,,,,,,,:,##S::::**:::S#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@.,,,,,,:S#?##?########:#****#,@@@@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@@@,%:*%,??#,,,,:*S##**:..****:,.*@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@@@@@@+,,,,,,,,,,,,,,,,,,*...*:,.,@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@@@@@@+,,,,,,,,,,,,,,,,,,?@@@@@*#?@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@@@@@@*,,,,,,,,,,,,,,,,,,.@#########?@@@@@@@@@@@@@@@@\n      @@@@@@@@@@@@@.*:,,,,,,,,,,,,,,:.##%,?#####????:@@@@@@@@@@@@@\n      @@@@@@@@@@@@@@?.....*******....S@@@@@@:##?????@@@@@@@@@@@@@@\n      @@@@@@@@@@@@@@S.+..********...#%@@@@@@@@@##,@@@@@@@@@@@@@@@@\n      @@@@@@@@@@@#*,,,,*.#@@@@@@@..*:,,*S@@@@@@@@@@@@@@@@@@@@@@@@@\n      @@@@@@@@@@+@,%,,,#@@@@@@@@@@,S,,,%,,:@@@@@@@@@@@@@@@@@@@@@@@")
-        yield self.ascii
-        self.label = Label("")
-        yield self.label
-        self.input = Input(placeholder="Who's That Pokemon?!")
-        yield self.input
+        self.backToHome = Button("Back")
+        yield self.backToHome
+        self.searchError = Label()
+        yield self.searchError
+        self.searchInput = Input(placeholder="Who's That Pokemon?!")
+        yield self.searchInput
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button == self.backToHome:
+            self.app.push_screen('homepage')
+
 
     def on_input_submitted(self, event):
-        api = requests.get(f"https://pokeapi.co/api/v2/pokemon/{event.value}")
-        if api.status_code == 200:
-            data = json.loads(api.text)
-            self.label.update(f"You Chose:{data['name']}!")
+        pokeApi = requests.get(f"https://pokeapi.co/api/v2/pokemon/{event.value}")
+        if pokeApi.status_code == 200:
+            pokeData = json.loads(pokeApi.text)
+            asciiData = get_pokemon(pokemons=asciiPokemon, name=event.value)
+            for key in asciiData:
+                asciiDataKey = asciiData[key]
+                searchResults = Results(asciiDataKey['ascii'], pokeData['name'])
+                self.app.push_screen(searchResults)
         else:
-            self.label.update(f"Uhhh Wrong Pokemon?...")
+            self.searchError.update(f"Uhhh Wrong Pokemon?...")
+
+class Results(Screen):
+    def __init__ (self, searchAscii, searchPokemon):
+        super().__init__()
+        self.resultsAscii = searchAscii
+        self.resultsPokemon = searchPokemon
+
+    def compose(self):
+        self.backToSearch = Button("Back")
+        yield self.backToSearch
+        self.resultsAsciiWidget = Static(self.resultsAscii)
+        yield self.resultsAsciiWidget
+        self.resultsPokemonWidget = Static(f"You Chose: {self.resultsPokemon}!")
+        yield self.resultsPokemonWidget
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button == self.backToSearch:
+            self.app.push_screen('search')
+
 
 class PokedexApp(App):
-    SCREENS = {"homepage": HomePage, "pokedex": Pokedex}
-    BINDINGS = [("w", "push_screen('homepage')", "HomePage")]
+    SCREENS = {"homepage":HomePage, "search":Search}
     def on_mount(self) -> None:
       self.push_screen('homepage')
 
