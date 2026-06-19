@@ -7,6 +7,6 @@ Python TUI "Pokedex" with PokeAPI, Pokemon ASCII art, and Textual.
 pip install -r requirements.txt
 
 ## Credits:
-https://github.com/vsoch/pokemon
-https://github.com/pokeapi/pokeapi
-https://github.com/textualize/textual
+[Pokemon ASCII](https://github.com/vsoch/pokemon)
+[Poke API](https://github.com/pokeapi/pokeapi)
+[Textual](https://github.com/textualize/textual)
