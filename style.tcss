@@ -1,0 +1,45 @@
+HomePage{
+  align: center middle;
+}
+
+ToastRack {
+        align: right top;
+}
+
+#asciiHome {
+  width: auto;
+  height: auto;
+}
+
+#asciiSearch{
+  align: center middle;
+  width: auto;
+  height: auto;
+  border: dashed gray;
+}
+
+#errorSearch{
+  align: center middle;
+  width: auto;
+  height: auto;
+}
+
+#inputSearch{
+  align: center middle;
+  content-align: center middle;
+  width: 50;
+  height: auto;
+}
+
+#asciiResults{
+  align: center middle;
+  width: auto;
+  height: auto;
+  border: dashed gray;
+}
+
+#pokemonResults{
+  align: center middle;
+  width: auto;
+  height: auto;
+}
