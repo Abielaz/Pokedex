@@ -43,3 +43,24 @@ ToastRack {
   width: auto;
   height: auto;
 }
+
+#stats{
+  align: center middle;
+  width: auto;
+  height: auto;
+  border: dashed gray;
+}
+
+#moves{
+  align: center middle;
+  width: auto;
+  height: auto;
+  border: dashed gray;
+}
+
+#abilities{
+  align: center middle;
+  width: auto;
+  height: auto;
+  border: dashed gray;
+}

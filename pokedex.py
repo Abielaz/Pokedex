@@ -32,7 +32,7 @@ class Search(Screen):
     def compose(self):
         self.backToHome = Button("Back")
         yield self.backToHome
-        self.searchAscii = Static(" : :. : : : :. : : : :. : : : :. : : : :. : : : :. : : : :. \n : :. : : : :. .@@@@@@@@# : : :. : : : :. : : : :. : : : :. \n : :. : : :@@@@%.: : :..*@@@@ :. : : : :. : : : :. : : : :. \n: : .: :.@@* .: : : : .: : ::@@@: : : : .: : : : .: @@. : .:\n: : .::@@: : .: : : : .: : : : %@@: : : .: : : :@@@=@:: : .:\n : :.@@.: : :. : : : :. : : : :. @@  : :. : :@@@:. @#: : :. \n : :@@: : : :. :@@@@@@@@  : : @@@@ : : :.%@@# : :.@@ : : :. \n : @@ : : : :=@@%: : :.*@@@@@@=. : : :@@@.: : : :@@: : : :. \n: %@.: : : :@@: :%@@@@@. :@: : .: *@@@: .: : : :@@: : : : .:\n: @@.: : : @@.:@@*: : =@@. : : @@@: : : .: : : @@.: : : : .:\n :@ . : : #@ .@@ : : :. @@: @@%. : : : :. : : @@.. : : : :. \n =@.. : : @@:.@@ : : :. :@: @@:. : : : :. : :@@ :. : : : :. \n :@ . : :@@@*.@@ : : :. %@: @@:. : : : :. : #@: :. : : : :. \n: @@.:@@@* : .:@@.: : .@@: %@. .: : : : .: +@. : .: : : : .:\n: %@@@ : : : .: -@@@@@@+ :@@ : .: : : : .::@:: : .: : : : .:\n: : .: : :%@@@@@@ : : .:@@@: : .: : : : .:@% : : .: : : : .:\n : :. :@@@= :. :%@@@@@@@: : : :. : : : :.@@ : : :. : : : :. \n : :.@@ : : :. : : : :. : : : :. : : : :@@: : : :. : : : :. \n: : .:-@@. : .: : : : .: : : : .: : : :@@: : : : .: : : : .:\n: : .: :-@@@ .: : : : .: : : : .: : : @@.: : : : .: : : : .:\n: : .: : : #@@@@. : : .: : : : .: : :@@ .: : : : .: : : : .:\n : :. : : : :. :*@@@@@@@: : : :. : :@@ :. : : : :. : : : :. \n : :. : : : :. : : : :=@@ : : :. : @@: :. : : : :. : : : :. \n. . .. . . . .. . . . .@@. . . .. %@  . .. . . . .. . . . ..\n: : .: : : : .: : : : .*@@ : : .:+@:: : .: : : : .: : : : .:\n: : .: : : : .: : : : .:@@ : : .=@% : : .: : : : .: : : : .:\n : :. : : : :. : : : :. *@@ : ::@@ : : :. : : : :. : : : :. \n : :. : : : :. : : : :. :@@ : :@@: : : :. : : : :. : : : :. \n : :. : : : :. : : : :. :=@=: @@ : : : :. : : : :. : : : :. \n: : .: : : : .: : : : .: :@@ @@.: : : : .: : : : .: : : : .:\n: : .: : : : .: : : : .: :=@@@ .: : : : .: : : : .: : : : .:\n : :. : : : :. : : : :. : :@@ :. : : : :. : : : :. : : : :. \n : :. : : : :. : : : :. : :=: :. : : : :. : : : :. : : : :. ", id="asciiSearch")
+        self.searchAscii = Static( "                                                                 \n                                                                 \n                                                                 \n                                                                 \n                                                                 \n                        .@@@@@@@@@@@@@.                          \n                     @@@@@@@@%:  #@@@@@@@@                       \n                   @@@@@.              @@@@@.                    \n                 @@@@:                   .@@@@                   \n                @@@@                       .@@@.                 \n              .@@@.                         .@@@.                \n              @@@.            .-.            .@@@                \n             +@@@          @@@@@@@@@.         .@@%               \n             @@@.         @@@     @@@          @@@               \n             @@@@@@@@@@@@@@@       @@@@@@@@@@@@@@@               \n             @@@.........-@@.     .@@=::.......@@@               \n             @@@.         @@@@...@@@@         .@@@               \n             .@@@           @@@@@@@           @@@.               \n              @@@%                           @@@@                \n               @@@@                         @@@@                 \n                %@@@.                     :@@@@                  \n                 .@@@@.                 #@@@@.                   \n                    @@@@@@.         .@@@@@@.                     \n                      .@@@@@@@@@@@@@@@@@.                        \n                          ..@@@@@@@..                            \n                                                                 \n                                                                 \n                                                                 \n                                                                 \n                                                                 \n                                                                 ", id="asciiSearch")
         with Center():
             yield self.searchAscii
         self.searchError = Label(id="errorSearch")
@@ -44,27 +44,30 @@ class Search(Screen):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button == self.backToHome:
-            self.app.push_screen('homepage')
+            self.app.pop_screen()
 
 
     def on_input_submitted(self, event):
         pokeApi = requests.get(f"https://pokeapi.co/api/v2/pokemon/{event.value}")
         if pokeApi.status_code == 200: #status 200 means the Pokemon was found successfully
+            self.searchError.update("")
             pokeData = json.loads(pokeApi.text)
             asciiData = get_pokemon(pokemons=asciiPokemon, name=event.value) #looks up ascii art matching the searched Pokemon name
             for key in asciiData:
                 asciiDataKey = asciiData[key] #ascii data is nested under the Pokemon's ID number as the dict key
-                searchResults = Results(asciiDataKey['ascii'], pokeData['name'], pokeData['stats']) #passing fetched data into Results so it can display without re-fetching
+                searchResults = Results(asciiDataKey['ascii'], pokeData['name'], pokeData['stats'], pokeData['abilities'], pokeData['moves']) #passing fetched data into Results so it can display without re-fetching
                 self.app.push_screen(searchResults)
         else:
-            self.searchError.update(f"Uhhh Wrong Pokemon?...") #error handling added for incorrect end-user input ensuring no crashes
+            self.searchError.update(f"Hmmm... Wrong Pokemon?...") #error handling added for incorrect end-user input ensuring no crashes
 
 class Results(Screen):
-    def __init__ (self, searchAscii, searchPokemon, statsData): #storing data passed in from Search for use in compose()
+    def __init__ (self, searchAscii, searchPokemon, statsData, abilitiesData, movesData): #storing data passed in from Search for use in compose()
         super().__init__()
         self.searchAscii = searchAscii
         self.searchPokemon = searchPokemon
         self.statsData = statsData
+        self.abilitiesData = abilitiesData
+        self.movesData = movesData
 
     def compose(self):
         self.backToSearch = Button("Back")
@@ -81,29 +84,52 @@ class Results(Screen):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button == self.backToSearch:
-            self.app.push_screen('search')
+            self.app.pop_screen()
         elif event.button == self.statsButton:
-            sendStats = Stats(self.statsData)
+            sendStats = Stats(self.statsData, self.abilitiesData, self.movesData)
             self.app.push_screen(sendStats) #sending data to stats screen
 
 class Stats(Screen):
-    def __init__(self, searchPokemonStats):
+    def __init__(self, searchPokemonStats, searchPokemonAbilities, searchMovesData):
         super().__init__()
         self.searchPokemonStats = searchPokemonStats
+        self.searchPokemonAbilities = searchPokemonAbilities
+        self.searchPokemonMoves = searchMovesData
 
     def compose(self):
         self.backToResults = Button("Back")
         yield self.backToResults
+
         pokeStats = ""
         for stats in self.searchPokemonStats:
             pokeStats += stats["stat"]["name"] + ": " + str(stats["base_stat"]) + "\n" #builds one combined string since static widgets only accept a single string, not a list
-        self.statsWidget = Static(pokeStats)
+        cleanStats = pokeStats.rstrip() #removes trailing characters from loop to make output cleaner
+        self.statsWidget = Static(f"Stats: \n{cleanStats.title()}", id="stats")
         with Center():
             yield self.statsWidget
 
+        pokeMoves = ""
+        for moves in self.searchPokemonMoves[0:5]:
+            pokeMoves += moves["move"]["name"] + ", " + "\n"
+        cleanMoves = pokeMoves.rstrip(", \n")
+        self.movesWidget = Static(f"Moves: \n{cleanMoves.title()}", id = "moves")
+        with Center():
+            yield self.movesWidget
+
+        pokeAbilities = ""
+        for abilities in self.searchPokemonAbilities:
+            pokeAbilities += abilities["ability"]["name"] + ", " + "\n"
+        cleanAbilities = pokeAbilities.rstrip(", \n")
+        self.abilitiesWidget = Static(f"Abilities: \n{cleanAbilities.title()}", id = "abilities")
+        with Center():
+            yield self.abilitiesWidget
+
+
+
+
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button == self.backToResults:
-            self.app.push_screen('search')
+            self.app.pop_screen()
 
 
 class PokedexApp(App):
